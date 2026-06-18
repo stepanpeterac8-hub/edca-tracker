@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KMK – Kontrola mých komodit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0c0e14;
+  --bg-secondary: #11141c;
+  --bg-card: #161b27;
+  --bg-card-hover: #1c2233;
+  --border: #1e2433;
+  --border-light: #252d3d;
+  --text-primary: #f0f4ff;
+  --text-secondary: #8892a8;
+  --text-muted: #4a5568;
+  --green: #00d395;
+  --green-dim: rgba(0,211,149,0.12);
+  --green-dim2: rgba(0,211,149,0.06);
+  --red: #ff4f6e;
+  --red-dim: rgba(255,79,110,0.12);
+  --red-dim2: rgba(255,79,110,0.06);
+  --yellow: #ffa726;
+  --yellow-dim: rgba(255,167,38,0.12);
+  --blue: #4d8ef5;
+  --blue-dim: rgba(77,142,245,0.12);
+  --purple: #a855f7;
+  --nav-height: 68px;
+  --topbar-height: 60px;
+}
+
+html { font-size: 16px; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: var(--nav-height);
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* TOPBAR */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  height: var(--topbar-height);
+  background: rgba(12,14,20,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+}
+.topbar-logo {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; cursor: pointer;
+}
+.topbar-logo span { font-size: 11px; font-weight: 400; color: var(--text-muted); -webkit-text-fill-color: var(--text-muted); margin-left: 6px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-btn {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; transition: all 0.2s;
+  color: var(--text-secondary); position: relative;
+}
+.topbar-btn:hover { background: var(--bg-card-hover); border-color: var(--border-light); }
+.notif-dot {
+  position: absolute; top: 6px; right: 6px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--red); border: 1.5px solid var(--bg-primary);
+}
+.avatar {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #4d8ef5, #a855f7);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  color: white; border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* MAIN CONTENT */
+.main { max-width: 1280px; margin: 0 auto; padding: 24px 20px 16px; }
+
+/* TABS */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* PORTFOLIO OVERVIEW */
+.portfolio-overview {
+  display: grid; grid-template-columns: 320px 1fr; gap: 20px;
+  margin-bottom: 24px;
+}
+@media (max-width: 900px) { .portfolio-overview { grid-template-columns: 1fr; } }
+
+.portfolio-stats {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 24px; display: flex; flex-direction: column;
+  gap: 16px; position: relative; overflow: hidden;
+}
+.portfolio-stats::before {
+  content: ''; position: absolute; top: -40px; left: -40px;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,211,149,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.portfolio-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+.portfolio-value { font-size: 38px; font-weight: 800; letter-spacing: -1.5px; line-height: 1; color: var(--text-primary); }
+.portfolio-value small { font-size: 18px; font-weight: 500; color: var(--text-secondary); }
+.portfolio-change {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.change-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 600;
+}
+.change-badge.positive { background: var(--green-dim); color: var(--green); }
+.change-badge.negative { background: var(--red-dim); color: var(--red); }
+.portfolio-sub { font-size: 12px; color: var(--text-muted); }
+.portfolio-divider { height: 1px; background: var(--border); }
+.portfolio-row { display: flex; justify-content: space-between; align-items: center; }
+.portfolio-row-label { font-size: 13px; color: var(--text-secondary); }
+.portfolio-row-value { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.portfolio-row-value.green { color: var(--green); }
+.portfolio-row-value.red { color: var(--red); }
+
+.portfolio-chart-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 20px 20px 12px; display: flex; flex-direction: column;
+}
+.chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.chart-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.time-buttons { display: flex; gap: 4px; }
+.time-btn {
+  padding: 4px 10px; border-radius: 7px; font-size: 11px; font-weight: 600;
+  border: 1px solid transparent; cursor: pointer; transition: all 0.15s;
+  background: transparent; color: var(--text-muted);
+}
+.time-btn:hover { color: var(--text-secondary); background: var(--bg-secondary); }
+.time-btn.active { background: var(--green-dim); color: var(--green); border-color: rgba(0,211,149,0.2); }
+.chart-area { flex: 1; min-height: 160px; position: relative; }
+#portfolioChart { width: 100%; height: 100%; min-height: 160px; }
+
+/* ACTION BUTTONS */
+.action-row { display: flex; gap: 12px; margin-bottom: 24px; align-items: center; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600;
+  background: var(--green); color: #0a1a13; border: none; cursor: pointer;
+  transition: all 0.2s; letter-spacing: -0.2px;
+}
+.btn-primary:hover { background: #00e8a5; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,211,149,0.3); }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600;
+  background: var(--bg-card); color: var(--text-primary);
+  border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;
+}
+.btn-secondary:hover { background: var(--bg-card-hover); border-color: var(--border-light); }
+.btn-ai {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600;
+  background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(77,142,245,0.15));
+  color: #c084fc; border: 1px solid rgba(168,85,247,0.3); cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ai:hover { background: linear-gradient(135deg, rgba(168,85,247,0.25), rgba(77,142,245,0.25)); transform: translateY(-1px); }
+.action-spacer { flex: 1; }
+.assets-count { font-size: 12px; color: var(--text-muted); }
+
+/* ASSET GRID */
+.assets-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+@media (max-width: 1024px) { .assets-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .assets-grid { grid-template-columns: 1fr; } }
+
+/* ASSET CARD */
+.asset-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 18px; cursor: pointer;
+  transition: all 0.2s; position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.asset-card:hover { background: var(--bg-card-hover); border-color: var(--border-light); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+.asset-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  border-radius: 18px 18px 0 0;
+  background: var(--accent-color, var(--border));
+  opacity: 0.6;
+}
+
+.card-header { display: flex; align-items: center; gap: 10px; }
+.asset-logo {
+  width: 38px; height: 38px; border-radius: 12px;
+  background: var(--logo-bg, var(--bg-secondary));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.card-title { flex: 1; min-width: 0; }
+.asset-name { font-size: 14px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.asset-ticker { font-size: 11px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.5px; }
+.card-menu-btn {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: transparent; border: 1px solid transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; color: var(--text-muted);
+  transition: all 0.15s; flex-shrink: 0;
+}
+.card-menu-btn:hover { background: var(--bg-secondary); border-color: var(--border); color: var(--text-primary); }
+
+.card-price-row { display: flex; align-items: baseline; justify-content: space-between; }
+.asset-price { font-size: 22px; font-weight: 800; letter-spacing: -0.8px; color: var(--text-primary); }
+.asset-price small { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+.change-pill {
+  padding: 3px 9px; border-radius: 8px; font-size: 12px; font-weight: 700;
+}
+.change-pill.up { background: var(--green-dim); color: var(--green); }
+.change-pill.down { background: var(--red-dim); color: var(--red); }
+
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.3px; text-transform: uppercase; width: fit-content;
+}
+.status-hold { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,211,149,0.2); }
+.status-dip1 { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,79,110,0.2); }
+.status-dip2 { background: rgba(200,30,60,0.18); color: #ff2d52; border: 1px solid rgba(255,45,82,0.3); }
+.status-tp { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(255,167,38,0.2); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* SPARKLINE */
+.sparkline-wrapper { height: 56px; margin: 0 -4px; }
+.sparkline-wrapper svg { width: 100%; height: 100%; overflow: visible; }
+
+/* PROGRESS */
+.progress-section { display: flex; flex-direction: column; gap: 5px; }
+.progress-label-row { display: flex; justify-content: space-between; align-items: center; }
+.progress-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.progress-pct { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.progress-track {
+  height: 5px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden;
+}
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.progress-fill.green { background: linear-gradient(90deg, var(--green), #00b880); }
+.progress-fill.red { background: linear-gradient(90deg, var(--red), #e03050); }
+.progress-fill.yellow { background: linear-gradient(90deg, var(--yellow), #e8950a); }
+.progress-fill.blue { background: linear-gradient(90deg, var(--blue), #2563eb); }
+
+.card-footer { display: flex; justify-content: space-between; align-items: center; }
+.recommendation { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.recommendation.green { color: var(--green); }
+.recommendation.yellow { color: var(--yellow); }
+.recommendation.red { color: var(--red); }
+.card-value { font-size: 11px; color: var(--text-muted); text-align: right; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  height: var(--nav-height); background: rgba(17,20,28,0.95);
+  backdrop-filter: blur(20px); border-top: 1px solid var(--border);
+  display: flex; align-items: stretch;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; cursor: pointer;
+  transition: all 0.2s; border: none; background: transparent;
+  color: var(--text-muted); font-family: inherit; padding: 0 4px;
+  position: relative;
+}
+.nav-item:hover { color: var(--text-secondary); }
+.nav-item.active { color: var(--green); }
+.nav-item.active::before {
+  content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 2px;
+  background: var(--green); border-radius: 0 0 4px 4px;
+}
+.nav-icon { font-size: 20px; line-height: 1; }
+.nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.3px; }
+
+/* MODALS */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(6,8,14,0.85); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--bg-card); border: 1px solid var(--border-light);
+  border-radius: 24px; width: 100%; max-width: 480px;
+  max-height: 90vh; overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-wide { max-width: 640px; }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 24px 0;
+}
+.modal-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; color: var(--text-muted);
+  transition: all 0.15s;
+}
+.modal-close:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+.modal-body { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+/* FORM */
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.3px; }
+.form-input {
+  padding: 10px 14px; background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 10px; font-size: 14px; color: var(--text-primary); font-family: inherit;
+  transition: all 0.15s; outline: none; width: 100%;
+}
+.form-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,211,149,0.1); }
+.form-input::placeholder { color: var(--text-muted); }
+textarea.form-input { resize: vertical; min-height: 80px; }
+.form-hint { font-size: 11px; color: var(--text-muted); }
+
+/* SECTION HEADER */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.section-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.section-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* DCA TAB */
+.dca-list { display: flex; flex-direction: column; gap: 10px; }
+.dca-item {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.dca-item-left { display: flex; align-items: center; gap: 12px; }
+.dca-logo-sm {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.dca-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.dca-ticker { font-size: 11px; color: var(--text-muted); }
+.dca-amount { font-size: 16px; font-weight: 700; color: var(--green); }
+.dca-amount-label { font-size: 10px; color: var(--text-muted); text-align: right; }
+.dca-status-pill { padding: 3px 9px; border-radius: 7px; font-size: 11px; font-weight: 600; }
+
+/* EXCHANGE TAB */
+.exchange-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 24px; margin-bottom: 16px;
+}
+.exchange-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary); }
+.exchange-row { display: flex; gap: 12px; }
+.exchange-select {
+  flex: 1; padding: 12px 14px; background: var(--bg-secondary);
+  border: 1px solid var(--border); border-radius: 10px;
+  font-size: 14px; color: var(--text-primary); font-family: inherit;
+  outline: none; cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%238892a8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+.exchange-select:focus { border-color: var(--green); }
+.exchange-arrow { display: flex; align-items: center; color: var(--text-muted); font-size: 20px; }
+
+/* STRATEGY / CHART TAB */
+.strategy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+@media (max-width: 640px) { .strategy-grid { grid-template-columns: 1fr; } }
+.strategy-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px;
+}
+.strategy-card-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+.strategy-card-value { font-size: 24px; font-weight: 800; letter-spacing: -0.8px; }
+
+/* SETTINGS TAB */
+.settings-section {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 18px; overflow: hidden; margin-bottom: 16px;
+}
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  transition: background 0.15s; cursor: pointer;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row:hover { background: var(--bg-card-hover); }
+.settings-row-left { display: flex; flex-direction: column; gap: 2px; }
+.settings-row-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.settings-row-sub { font-size: 12px; color: var(--text-muted); }
+.settings-row-right { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+
+/* TOGGLE */
+.toggle { position: relative; width: 40px; height: 22px; cursor: pointer; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0; background: var(--bg-secondary);
+  border: 1px solid var(--border); border-radius: 11px; transition: all 0.2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute; width: 16px; height: 16px;
+  left: 3px; top: 2px; background: var(--text-muted); border-radius: 50%; transition: all 0.2s;
+}
+.toggle input:checked + .toggle-slider { background: var(--green-dim); border-color: rgba(0,211,149,0.3); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: var(--green); }
+
+/* MENU DROPDOWN */
+.dropdown-menu {
+  position: absolute; right: 0; top: 38px; z-index: 300;
+  background: var(--bg-card); border: 1px solid var(--border-light);
+  border-radius: 14px; padding: 6px; min-width: 160px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  animation: dropIn 0.15s ease;
+}
+@keyframes dropIn { from { transform: translateY(-8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.dropdown-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 9px; cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  transition: all 0.12s;
+}
+.dropdown-item:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+.dropdown-item.danger { color: var(--red); }
+.dropdown-item.danger:hover { background: var(--red-dim); }
+.dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* AI MODAL */
+.ai-modal-icon {
+  width: 64px; height: 64px; border-radius: 20px;
+  background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(77,142,245,0.2));
+  border: 1px solid rgba(168,85,247,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; margin: 0 auto 16px;
+}
+.ai-modal-text { font-size: 14px; color: var(--text-secondary); text-align: center; line-height: 1.6; }
+.btn-full { width: 100%; justify-content: center; padding: 14px; font-size: 15px; }
+
+/* DETAIL MODAL */
+.detail-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.detail-stat {
+  background: var(--bg-secondary); border-radius: 12px; padding: 12px 14px;
+}
+.detail-stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.detail-stat-value { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center; padding: 60px 20px;
+  background: var(--bg-card); border: 1px dashed var(--border);
+  border-radius: 18px; color: var(--text-muted);
+}
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state-text { font-size: 15px; font-weight: 500; margin-bottom: 8px; color: var(--text-secondary); }
+.empty-state-sub { font-size: 13px; }
+
+/* TOAST */
+.toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--bg-card); border: 1px solid var(--border-light);
+  border-radius: 12px; padding: 12px 16px; min-width: 240px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4); font-size: 13px; font-weight: 500;
+  animation: slideInRight 0.25s ease; color: var(--text-primary);
+}
+@keyframes slideInRight { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.toast.success .toast-icon { color: var(--green); }
+.toast.error .toast-icon { color: var(--red); }
+.toast.info .toast-icon { color: var(--blue); }
+
+/* LOADING SKELETON */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* NOTES BADGE */
+.has-notes::after {
+  content: ''; position: absolute; top: 10px; right: 42px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--blue);
+}
+
+/* UTILS */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-8 { gap: 8px; }
+.mt-4 { margin-top: 4px; }
+.text-green { color: var(--green); }
+.text-red { color: var(--red); }
+.text-yellow { color: var(--yellow); }
+.font-bold { font-weight: 700; }
+
+/* RESPONSIVE TOPBAR */
+@media (max-width: 480px) {
+  .topbar { padding: 0 14px; }
+  .topbar-logo span { display: none; }
+  .main { padding: 16px 12px 12px; }
+}
+
+/* CHART TOOLTIP */
+.chart-tooltip {
+  position: absolute; background: var(--bg-card); border: 1px solid var(--border-light);
+  border-radius: 10px; padding: 8px 12px; pointer-events: none;
+  font-size: 12px; font-weight: 600; color: var(--text-primary);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4); white-space: nowrap; z-index: 10;
+  display: none;
+}
+
+/* TAB INDICATORS */
+.big-chart-container {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 20px; margin-bottom: 20px;
+}
+#bigChart { width: 100%; height: 300px; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-logo" onclick="switchTab('dashboard')">
+    KMK <span>Kontrola mých komodit</span>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-btn" onclick="showToast('Žádné nové notifikace', 'info')" title="Notifikace">
+      🔔
+      <span class="notif-dot"></span>
+    </div>
+    <div class="avatar" onclick="switchTab('settings')" title="Nastavení účtu">PA</div>
+  </div>
+</header>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- ==================== DASHBOARD TAB ==================== -->
+  <div class="tab-content active" id="tab-dashboard">
+    <!-- Portfolio Overview -->
+    <div class="portfolio-overview">
+      <div class="portfolio-stats" id="portfolioStats">
+        <div>
+          <div class="portfolio-label">Celková hodnota portfolia</div>
+          <div class="portfolio-value" id="totalValue">–</div>
+        </div>
+        <div class="portfolio-change">
+          <span class="change-badge" id="totalChangeBadge">–</span>
+          <span class="portfolio-sub" id="portfolioSince">–</span>
+        </div>
+        <div class="portfolio-divider"></div>
+        <div class="portfolio-row">
+          <span class="portfolio-row-label">Celkem investováno</span>
+          <span class="portfolio-row-value" id="totalInvested">–</span>
+        </div>
+        <div class="portfolio-row">
+          <span class="portfolio-row-label">Nerealizovaný zisk</span>
+          <span class="portfolio-row-value" id="totalGain">–</span>
+        </div>
+        <div class="portfolio-row">
+          <span class="portfolio-row-label">Počet aktiv</span>
+          <span class="portfolio-row-value" id="assetCount">–</span>
+        </div>
+        <div class="portfolio-row">
+          <span class="portfolio-row-label">DCA signály</span>
+          <span class="portfolio-row-value" id="dcaSignals">–</span>
+        </div>
+      </div>
+
+      <div class="portfolio-chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Vývoj portfolia</span>
+          <div class="time-buttons">
+            <button class="time-btn" onclick="setTimeRange('24h', this)">24h</button>
+            <button class="time-btn active" onclick="setTimeRange('7d', this)">7d</button>
+            <button class="time-btn" onclick="setTimeRange('30d', this)">30d</button>
+            <button class="time-btn" onclick="setTimeRange('3m', this)">3M</button>
+            <button class="time-btn" onclick="setTimeRange('1y', this)">1R</button>
+          </div>
+        </div>
+        <div class="chart-area">
+          <svg id="portfolioChart" viewBox="0 0 600 160" preserveAspectRatio="none"></svg>
+          <div class="chart-tooltip" id="chartTooltip"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Row -->
+    <div class="action-row">
+      <button class="btn-primary" onclick="openModal('addAssetModal')">
+        <span>＋</span> Přidat aktivum
+      </button>
+      <button class="btn-ai" onclick="openModal('aiModal')">
+        ✦ Poradit s AI
+      </button>
+      <span class="action-spacer"></span>
+      <span class="assets-count" id="assetsCountLabel">–</span>
+    </div>
+
+    <!-- Assets Grid -->
+    <div class="assets-grid" id="assetsGrid">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- ==================== EXCHANGE TAB ==================== -->
+  <div class="tab-content" id="tab-exchange">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Směna & Transakce</div>
+        <div class="section-sub">Přidejte nákup nebo prodej</div>
+      </div>
+    </div>
+
+    <div class="exchange-card">
+      <div class="exchange-title">Nová transakce</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Typ transakce</label>
+        <div style="display:flex;gap:8px">
+          <button class="btn-primary" style="flex:1;justify-content:center;background:var(--green-dim);color:var(--green);border:1px solid rgba(0,211,149,0.3)" id="txBuyBtn" onclick="setTxType('buy')">📈 Nákup</button>
+          <button class="btn-secondary" style="flex:1;justify-content:center" id="txSellBtn" onclick="setTxType('sell')">📉 Prodej</button>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-bottom:12px">
+        <div class="form-group">
+          <label class="form-label">Aktivum</label>
+          <select class="exchange-select form-input" id="txAsset"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Datum</label>
+          <input type="date" class="form-input" id="txDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Množství</label>
+          <input type="number" class="form-input" id="txAmount" placeholder="0.0000" step="any">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cena (USD)</label>
+          <input type="number" class="form-input" id="txPrice" placeholder="0.00" step="any">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label class="form-label">Poznámka</label>
+        <input type="text" class="form-input" id="txNote" placeholder="Volitelná poznámka...">
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:13px;color:var(--text-muted)">Celková hodnota: <strong id="txTotal" style="color:var(--text-primary)">–</strong></div>
+        <button class="btn-primary" onclick="submitTransaction()">Přidat transakci</button>
+      </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="section-header">
+      <div class="section-title">Historie transakcí</div>
+      <button class="btn-secondary" style="padding:6px 14px;font-size:12px" onclick="clearTransactions()">Vymazat</button>
+    </div>
+    <div id="transactionList">
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <div class="empty-state-text">Žádné transakce</div>
+        <div class="empty-state-sub">Přidejte první nákup nebo prodej</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== DCA TAB ==================== -->
+  <div class="tab-content" id="tab-dca">
+    <div class="section-header">
+      <div>
+        <div class="section-title">DCA Plán</div>
+        <div class="section-sub">Doporučené investice na základě strategie</div>
+      </div>
+    </div>
+
+    <!-- DCA Summary -->
+    <div class="strategy-grid" style="margin-bottom:20px">
+      <div class="strategy-card">
+        <div class="strategy-card-title">Základní DCA / měsíc</div>
+        <div class="strategy-card-value text-green" id="baseDcaTotal">–</div>
+      </div>
+      <div class="strategy-card">
+        <div class="strategy-card-title">Aktuální DCA (se signály)</div>
+        <div class="strategy-card-value text-yellow" id="activeDcaTotal">–</div>
+      </div>
+    </div>
+
+    <div class="dca-list" id="dcaList"><!-- filled by JS --></div>
+  </div>
+
+  <!-- ==================== CHART/STRATEGY TAB ==================== -->
+  <div class="tab-content" id="tab-chart">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Graf & Strategie</div>
+        <div class="section-sub">Přehled výkonnosti portfolia</div>
+      </div>
+    </div>
+
+    <div class="big-chart-container">
+      <div class="chart-header">
+        <span class="chart-title">Portfolio – historický vývoj</span>
+        <div class="time-buttons">
+          <button class="time-btn" onclick="setTimeRange('7d', this, 'big')">7d</button>
+          <button class="time-btn active" onclick="setTimeRange('30d', this, 'big')">30d</button>
+          <button class="time-btn" onclick="setTimeRange('3m', this, 'big')">3M</button>
+          <button class="time-btn" onclick="setTimeRange('1y', this, 'big')">1R</button>
+        </div>
+      </div>
+      <svg id="bigChart" viewBox="0 0 800 300" preserveAspectRatio="none"></svg>
+    </div>
+
+    <!-- Per-Asset Performance -->
+    <div class="section-title" style="margin-bottom:14px">Výkonnost aktiv</div>
+    <div id="assetPerformanceList" class="dca-list"></div>
+  </div>
+
+  <!-- ==================== SETTINGS TAB ==================== -->
+  <div class="tab-content" id="tab-settings">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Nastavení</div>
+        <div class="section-sub">Přizpůsobte KMK svým potřebám</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-row" onclick="">
+        <div class="settings-row-left">
+          <span class="settings-row-label">Měna zobrazení</span>
+          <span class="settings-row-sub">Aktuálně: USD ($)</span>
+        </div>
+        <div class="settings-row-right">
+          <span style="font-size:13px">USD</span> ›
+        </div>
+      </div>
+      <div class="settings-row" onclick="">
+        <div class="settings-row-left">
+          <span class="settings-row-label">Notifikace DCA signálů</span>
+          <span class="settings-row-sub">Upozornění při DIP / Take Profit</span>
+        </div>
+        <div class="settings-row-right">
+          <label class="toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" checked id="toggleNotif">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="settings-row" onclick="">
+        <div class="settings-row-left">
+          <span class="settings-row-label">Automatická aktualizace cen</span>
+          <span class="settings-row-sub">Každých 5 minut (simulace)</span>
+        </div>
+        <div class="settings-row-right">
+          <label class="toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="toggleAutoRefresh">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-row" onclick="openModal('addAssetModal')">
+        <div class="settings-row-left">
+          <span class="settings-row-label">Přidat aktivum</span>
+          <span class="settings-row-sub">Sledujte novou komoditu nebo akci</span>
+        </div>
+        <div class="settings-row-right">＋</div>
+      </div>
+      <div class="settings-row" onclick="exportData()">
+        <div class="settings-row-left">
+          <span class="settings-row-label">Exportovat data</span>
+          <span class="settings-row-sub">Stáhnout jako JSON</span>
+        </div>
+        <div class="settings-row-right">↓</div>
+      </div>
+      <div class="settings-row" onclick="importData()">
+        <div class="settings-row-left">
+          <span class="settings-row-label">Importovat data</span>
+          <span class="settings-row-sub">Načíst ze zálohy</span>
+        </div>
+        <div class="settings-row-right">↑</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-row" style="cursor:default">
+        <div class="settings-row-left">
+          <span class="settings-row-label">Verze aplikace</span>
+          <span class="settings-row-sub">KMK Redesign v3.0</span>
+        </div>
+        <div class="settings-row-right" style="font-size:12px;color:var(--green)">Nejnovější</div>
+      </div>
+      <div class="settings-row" style="color:var(--red);cursor:pointer" onclick="resetAllData()">
+        <div class="settings-row-left">
+          <span class="settings-row-label" style="color:var(--red)">Resetovat všechna data</span>
+          <span class="settings-row-sub">Smazat aktiva a transakce</span>
+        </div>
+        <div class="settings-row-right">🗑</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;font-size:12px;color:var(--text-muted)">
+      KMK — Kontrola mých komodit &copy; 2024<br>
+      <span style="color:var(--text-muted)">Data jsou uložena lokálně ve vašem prohlížeči</span>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Přehled</span>
+  </button>
+  <button class="nav-item" id="nav-exchange" onclick="switchTab('exchange')">
+    <span class="nav-icon">💱</span>
+    <span class="nav-label">Směna</span>
+  </button>
+  <button class="nav-item" id="nav-dca" onclick="switchTab('dca')">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">DCA</span>
+  </button>
+  <button class="nav-item" id="nav-chart" onclick="switchTab('chart')">
+    <span class="nav-icon">📈</span>
+    <span class="nav-label">Graf</span>
+  </button>
+  <button class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+    <span class="nav-icon">⚙</span>
+    <span class="nav-label">Nastavení</span>
+  </button>
+</nav>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- ADD ASSET MODAL -->
+<div class="modal-overlay" id="addAssetModal" onclick="overlayClick(event,'addAssetModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Přidat aktivum</span>
+      <button class="modal-close" onclick="closeModal('addAssetModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Název</label>
+          <input class="form-input" id="newName" placeholder="Bitcoin">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ticker</label>
+          <input class="form-input" id="newTicker" placeholder="BTC" style="text-transform:uppercase">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Logo / emoji</label>
+          <input class="form-input" id="newLogo" placeholder="₿">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Barva (hex)</label>
+          <input class="form-input" id="newColor" placeholder="#f7931a" type="color" value="#4d8ef5">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Aktuální cena (USD)</label>
+          <input class="form-input" type="number" id="newCurrentPrice" placeholder="0.00" step="any">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prům. nákupní cena (USD)</label>
+          <input class="form-input" type="number" id="newAvgBuyPrice" placeholder="0.00" step="any">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Počet jednotek</label>
+          <input class="form-input" type="number" id="newTotalUnits" placeholder="0.0000" step="any">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Investováno (USD)</label>
+          <input class="form-input" type="number" id="newTotalInvested" placeholder="0.00" step="any">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">DCA základ / měsíc (USD)</label>
+          <input class="form-input" type="number" id="newDcaBase" placeholder="100" step="any">
+        </div>
+        <div class="form-group">
+          <label class="form-label">DIP 1 práh (%)</label>
+          <input class="form-input" type="number" id="newDip1" placeholder="-15">
+        </div>
+        <div class="form-group">
+          <label class="form-label">DIP 2 práh (%)</label>
+          <input class="form-input" type="number" id="newDip2" placeholder="-30">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Take Profit cíl (%)</label>
+          <input class="form-input" type="number" id="newTp" placeholder="20">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Poznámky</label>
+        <textarea class="form-input" id="newNotes" placeholder="Vaše poznámky k aktivu..."></textarea>
+      </div>
+      <button class="btn-primary btn-full" onclick="addAsset()">Přidat aktivum</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSET MENU MODAL -->
+<div class="modal-overlay" id="assetMenuModal" onclick="overlayClick(event,'assetMenuModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="menuModalTitle">Možnosti aktiva</span>
+      <button class="modal-close" onclick="closeModal('assetMenuModal')">✕</button>
+    </div>
+    <div class="modal-body" id="assetMenuBody">
+    </div>
+  </div>
+</div>
+
+<!-- ASSET DETAIL MODAL -->
+<div class="modal-overlay" id="assetDetailModal" onclick="overlayClick(event,'assetDetailModal')">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <span class="modal-title" id="detailModalTitle">Detail aktiva</span>
+      <button class="modal-close" onclick="closeModal('assetDetailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="assetDetailBody">
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ASSET MODAL -->
+<div class="modal-overlay" id="editAssetModal" onclick="overlayClick(event,'editAssetModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Upravit strategii</span>
+      <button class="modal-close" onclick="closeModal('editAssetModal')">✕</button>
+    </div>
+    <div class="modal-body" id="editAssetBody">
+    </div>
+  </div>
+</div>
+
+<!-- AI MODAL -->
+<div class="modal-overlay" id="aiModal" onclick="overlayClick(event,'aiModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Poradit s AI</span>
+      <button class="modal-close" onclick="closeModal('aiModal')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center">
+      <div class="ai-modal-icon">✦</div>
+      <div class="ai-modal-text">
+        Tato funkce otevírá <strong style="color:var(--text-primary)">Claude AI</strong> pro personalizované investiční poradenství.<br><br>
+        Na základě vašeho portfolia vám Claude může pomoci s:<br>
+        DCA strategií, analýzou rizik, načasováním nákupů a dalšími dotazy.
+      </div>
+      <div style="height:16px"></div>
+      <button class="btn-ai btn-full" onclick="openClaudeAI()" style="justify-content:center">
+        ✦ Otevřít Claude AI
+      </button>
+      <div style="height:8px"></div>
+      <button class="btn-secondary btn-full" onclick="closeModal('aiModal')" style="justify-content:center">
+        Zrušit
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTES MODAL -->
+<div class="modal-overlay" id="notesModal" onclick="overlayClick(event,'notesModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Poznámky</span>
+      <button class="modal-close" onclick="closeModal('notesModal')">✕</button>
+    </div>
+    <div class="modal-body" id="notesBody"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const DEFAULT_ASSETS = [
+  { id:'btc', name:'Bitcoin', ticker:'BTC', logo:'₿', color:'#f7931a',
+    currentPrice:66677, change24h:-2.3, avgBuyPrice:76500,
+    totalUnits:0.047, totalInvested:3595, dcaBase:250,
+    dipThresholds:[-15,-30], tpTarget:20, notes:'' },
+  { id:'eth', name:'Ethereum', ticker:'ETH', logo:'Ξ', color:'#627eea',
+    currentPrice:1771.55, change24h:-1.8, avgBuyPrice:2400,
+    totalUnits:0.61, totalInvested:1464, dcaBase:100,
+    dipThresholds:[-15,-30], tpTarget:20, notes:'' },
+  { id:'sp500', name:'S&P 500', ticker:'SPY', logo:'📈', color:'#4d8ef5',
+    currentPrice:811.98, change24h:0.4, avgBuyPrice:720,
+    totalUnits:1.25, totalInvested:900, dcaBase:450,
+    dipThresholds:[-15,-30], tpTarget:20, notes:'' },
+  { id:'xau', name:'Zlato', ticker:'XAU', logo:'🥇', color:'#ffd700',
+    currentPrice:4364.2, change24h:0.8, avgBuyPrice:3950,
+    totalUnits:0.025, totalInvested:986, dcaBase:100,
+    dipThresholds:[-15,-30], tpTarget:20, notes:'' },
+  { id:'nvda', name:'Nvidia', ticker:'NVDA', logo:'🖥', color:'#76b900',
+    currentPrice:206.36, change24h:1.2, avgBuyPrice:185,
+    totalUnits:1.1, totalInvested:203, dcaBase:100,
+    dipThresholds:[-15,-30], tpTarget:20, notes:'' },
+  { id:'usdidx', name:'USD Index', ticker:'DXY', logo:'💵', color:'#22c55e',
+    currentPrice:104.21, change24h:-0.3, avgBuyPrice:105,
+    totalUnits:1, totalInvested:104, dcaBase:50,
+    dipThresholds:[-15,-30], tpTarget:20, notes:'' },
+];
+
+const STORAGE_KEY = 'kmk_assets_v3';
+const TX_KEY = 'kmk_transactions_v3';
+
+let assets = [];
+let transactions = [];
+let currentTab = 'dashboard';
+let txType = 'buy';
+let currentTimeRange = '7d';
+let activeMenuAssetId = null;
+
+// ============================================================
+// PERSISTENCE
+// ============================================================
+function loadData() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    assets = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(DEFAULT_ASSETS));
+  } catch { assets = JSON.parse(JSON.stringify(DEFAULT_ASSETS)); }
+  try {
+    const stored = localStorage.getItem(TX_KEY);
+    transactions = stored ? JSON.parse(stored) : [];
+  } catch { transactions = []; }
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(assets));
+  localStorage.setItem(TX_KEY, JSON.stringify(transactions));
+}
+
+// ============================================================
+// STRATEGY LOGIC
+// ============================================================
+function getAssetStatus(asset) {
+  const pct = (asset.currentPrice - asset.avgBuyPrice) / asset.avgBuyPrice * 100;
+  if (pct <= asset.dipThresholds[1]) return { status:'DIP 2', type:'dip2', multiplier:4, pct };
+  if (pct <= asset.dipThresholds[0]) return { status:'DIP 1', type:'dip1', multiplier:2, pct };
+  if (pct >= asset.tpTarget) return { status:'Take Profit', type:'tp', multiplier:0, pct };
+  return { status:'HOLD', type:'hold', multiplier:0, pct };
+}
+
+function getProgress(asset) {
+  const { type, pct } = getAssetStatus(asset);
+  const d1 = asset.dipThresholds[0]; // e.g. -15
+  const d2 = asset.dipThresholds[1]; // e.g. -30
+  const tp = asset.tpTarget;         // e.g. 20
+
+  if (type === 'dip1') {
+    // How far from 0% down to d1 threshold
+    return { value: Math.min(100, Math.round(Math.abs(pct) / Math.abs(d1) * 100)), label: 'DIP 1', color: 'red' };
+  }
+  if (type === 'dip2') {
+    // How far from d1 to d2
+    return { value: Math.min(100, Math.round((Math.abs(pct) - Math.abs(d1)) / Math.abs(d2 - d1) * 100)), label: 'DIP 2', color: 'red' };
+  }
+  if (type === 'tp') {
+    return { value: Math.min(100, Math.round(pct / tp * 100)), label: 'Take Profit', color: 'yellow' };
+  }
+  // HOLD: show how close to next trigger (dip1 or tp)
+  if (pct < 0) {
+    // heading toward dip1
+    return { value: Math.min(100, Math.round(Math.abs(pct) / Math.abs(d1) * 100)), label: 'Do DIP 1', color: 'blue' };
+  }
+  return { value: Math.min(100, Math.round(pct / tp * 100)), label: 'Do TP', color: 'green' };
+}
+
+function getRecommendation(asset) {
+  const { type, multiplier } = getAssetStatus(asset);
+  if (type === 'dip2') return { text: `${multiplier}× DCA`, cls: 'red' };
+  if (type === 'dip1') return { text: `${multiplier}× DCA`, cls: 'yellow' };
+  if (type === 'tp') return { text: 'Zvažit prodej', cls: 'yellow' };
+  return { text: 'Žádná akce', cls: '' };
+}
+
+// ============================================================
+// PORTFOLIO CALCULATIONS
+// ============================================================
+function getPortfolioStats() {
+  let totalValue = 0, totalInvested = 0, dcaSignals = 0;
+  assets.forEach(a => {
+    totalValue += a.currentPrice * a.totalUnits;
+    totalInvested += a.totalInvested;
+    const { type } = getAssetStatus(a);
+    if (type === 'dip1' || type === 'dip2') dcaSignals++;
+  });
+  const gain = totalValue - totalInvested;
+  const gainPct = totalInvested > 0 ? (gain / totalInvested * 100) : 0;
+  return { totalValue, totalInvested, gain, gainPct, dcaSignals };
+}
+
+// ============================================================
+// SPARKLINE GENERATION
+// ============================================================
+function generateSparklineData(asset, points = 20) {
+  const seed = asset.id.charCodeAt(0) + asset.id.charCodeAt(1);
+  const data = [];
+  let price = asset.currentPrice * (1 + (asset.change24h > 0 ? -0.04 : 0.04));
+  const trend = asset.change24h / 100;
+  for (let i = 0; i < points; i++) {
+    const noise = (Math.sin(seed * i * 0.7) + Math.cos(seed * i * 0.3)) * 0.015;
+    const step = trend / points + noise;
+    price *= (1 + step);
+    data.push(price);
+  }
+  // Ensure last point matches current price
+  data[data.length - 1] = asset.currentPrice;
+  return data;
+}
+
+function buildSparklineSVG(asset) {
+  const data = generateSparklineData(asset);
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const w = 280, h = 56, pad = 4;
+  const iw = w - pad * 2, ih = h - pad * 2;
+
+  const pts = data.map((v, i) => [
+    pad + (i / (data.length - 1)) * iw,
+    pad + ih - ((v - min) / range) * ih
+  ]);
+
+  const linePath = pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
+
+  const isUp = asset.change24h >= 0;
+  const strokeColor = isUp ? '#00d395' : '#ff4f6e';
+  const fillId = `grad-${asset.id}`;
+
+  // Area path
+  const areaPath = linePath + ` L${pts[pts.length-1][0]},${h} L${pts[0][0]},${h} Z`;
+
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="${fillId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="${strokeColor}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path d="${areaPath}" fill="url(#${fillId})"/>
+    <path d="${linePath}" fill="none" stroke="${strokeColor}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+// ============================================================
+// PORTFOLIO CHART
+// ============================================================
+function generatePortfolioData(range) {
+  const points = { '24h':24, '7d':28, '30d':30, '3m':36, '1y':52 }[range] || 28;
+  const { totalValue } = getPortfolioStats();
+  const startMultiplier = { '24h':0.985, '7d':0.93, '30d':0.87, '3m':0.74, '1y':0.55 }[range] || 0.93;
+  let val = totalValue * startMultiplier;
+  const data = [];
+  for (let i = 0; i < points; i++) {
+    const noise = (Math.sin(i * 0.8) * 0.012) + (Math.cos(i * 0.3) * 0.008);
+    const trend = (1 - startMultiplier) / points;
+    val *= (1 + trend + noise);
+    data.push(val);
+  }
+  data[data.length - 1] = totalValue;
+  return data;
+}
+
+function drawPortfolioChart(svgId, range, viewBox = '0 0 600 160', h = 160) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const [,, w] = viewBox.split(' ').map(Number);
+  const data = generatePortfolioData(range);
+  const min = Math.min(...data) * 0.995;
+  const max = Math.max(...data) * 1.005;
+  const range2 = max - min;
+  const padL = 0, padR = 0, padT = 10, padB = 20;
+  const iw = w - padL - padR;
+  const ih = h - padT - padB;
+
+  const pts = data.map((v, i) => [
+    padL + (i / (data.length - 1)) * iw,
+    padT + ih - ((v - min) / range2) * ih
+  ]);
+
+  const linePath = pts.map((p,i) => i===0 ? `M${p[0].toFixed(1)},${p[1].toFixed(1)}` : `L${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  const areaPath = linePath + ` L${pts[pts.length-1][0].toFixed(1)},${h} L${pts[0][0].toFixed(1)},${h} Z`;
+
+  // Grid lines
+  const gridLines = [0.25, 0.5, 0.75].map(t => {
+    const y = (padT + t * ih).toFixed(1);
+    const val = max - t * range2;
+    return `<line x1="${padL}" y1="${y}" x2="${w}" y2="${y}" stroke="#1e2433" stroke-width="1"/>
+            <text x="${padL+4}" y="${(parseFloat(y)-3).toFixed(1)}" fill="#4a5568" font-size="9" font-family="Inter">${formatCurrency(val)}</text>`;
+  }).join('');
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="pg${svgId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#00d395" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="#00d395" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${gridLines}
+    <path d="${areaPath}" fill="url(#pg${svgId})"/>
+    <path d="${linePath}" fill="none" stroke="#00d395" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${pts[pts.length-1][0].toFixed(1)}" cy="${pts[pts.length-1][1].toFixed(1)}" r="4" fill="#00d395" stroke="#0c0e14" stroke-width="2"/>
+  `;
+}
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+function renderDashboard() {
+  const stats = getPortfolioStats();
+
+  // Portfolio stats
+  document.getElementById('totalValue').innerHTML = `<small>$</small>${formatNum(stats.totalValue)}`;
+  document.getElementById('totalInvested').textContent = '$' + formatNum(stats.totalInvested);
+
+  const gainSign = stats.gain >= 0 ? '+' : '';
+  const gainEl = document.getElementById('totalGain');
+  gainEl.textContent = gainSign + '$' + formatNum(Math.abs(stats.gain));
+  gainEl.className = 'portfolio-row-value ' + (stats.gain >= 0 ? 'green' : 'red');
+
+  const badge = document.getElementById('totalChangeBadge');
+  badge.textContent = `${gainSign}$${formatNum(Math.abs(stats.gain))} (${gainSign}${stats.gainPct.toFixed(1)}%)`;
+  badge.className = 'change-badge ' + (stats.gain >= 0 ? 'positive' : 'negative');
+
+  document.getElementById('portfolioSince').textContent = `za celou dobu sledování`;
+  document.getElementById('assetCount').textContent = assets.length;
+  document.getElementById('dcaSignals').textContent = stats.dcaSignals + (stats.dcaSignals === 1 ? ' aktivum' : stats.dcaSignals < 5 ? ' aktiva' : ' aktiv');
+
+  document.getElementById('assetsCountLabel').textContent = `${assets.length} aktiv v portfoliu`;
+
+  // Render cards
+  const grid = document.getElementById('assetsGrid');
+  if (assets.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-state-icon">📊</div>
+      <div class="empty-state-text">Zatím žádná aktiva</div>
+      <div class="empty-state-sub">Klikněte na "Přidat aktivum" a začněte sledovat portfolio</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = assets.map(renderAssetCard).join('');
+
+  // Draw portfolio chart
+  drawPortfolioChart('portfolioChart', currentTimeRange, '0 0 600 160', 160);
+}
+
+function renderAssetCard(asset) {
+  const { status, type, pct } = getAssetStatus(asset);
+  const prog = getProgress(asset);
+  const rec = getRecommendation(asset);
+  const currentVal = asset.currentPrice * asset.totalUnits;
+  const changeSym = asset.change24h >= 0 ? '+' : '';
+
+  const statusClass = { hold:'status-hold', dip1:'status-dip1', dip2:'status-dip2', tp:'status-tp' }[type];
+  const sparkline = buildSparklineSVG(asset);
+
+  const hasNotes = asset.notes && asset.notes.trim().length > 0;
+
+  return `<div class="asset-card" style="--accent-color:${asset.color}" onclick="handleCardClick(event,'${asset.id}')">
+    <div class="card-header">
+      <div class="asset-logo" style="--logo-bg:${asset.color}20;background:${asset.color}18;border-color:${asset.color}25">
+        ${asset.logo}
+      </div>
+      <div class="card-title">
+        <div class="asset-name">${asset.name}</div>
+        <div class="asset-ticker">${asset.ticker}</div>
+      </div>
+      <div style="position:relative">
+        <button class="card-menu-btn ${hasNotes ? 'has-notes' : ''}" onclick="openAssetMenu(event,'${asset.id}')" title="Možnosti">⋮</button>
+      </div>
+    </div>
+
+    <div class="card-price-row">
+      <div class="asset-price"><small>$</small>${formatPrice(asset.currentPrice)}</div>
+      <span class="change-pill ${asset.change24h >= 0 ? 'up' : 'down'}">${changeSym}${asset.change24h.toFixed(2)}%</span>
+    </div>
+
+    <div>
+      <span class="status-badge ${statusClass}">
+        <span class="status-dot"></span>${status}
+      </span>
+    </div>
+
+    <div class="sparkline-wrapper">${sparkline}</div>
+
+    <div class="progress-section">
+      <div class="progress-label-row">
+        <span class="progress-label">${prog.label}</span>
+        <span class="progress-pct">${prog.value}%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill ${prog.color}" style="width:${prog.value}%"></div>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <span class="recommendation ${rec.cls}">${rec.text}</span>
+      <div class="card-value">
+        <div style="font-weight:600;color:var(--text-secondary)">$${formatNum(currentVal)}</div>
+        <div>${pct >= 0 ? '+' : ''}${pct.toFixed(1)}% od ACB</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderDCA() {
+  const stats = getPortfolioStats();
+  let baseTotal = 0, activeTotal = 0;
+
+  const items = assets.map(asset => {
+    const { type, multiplier } = getAssetStatus(asset);
+    const base = asset.dcaBase;
+    const active = base * (multiplier > 0 ? multiplier : 1);
+    baseTotal += base;
+    activeTotal += active;
+
+    const { status } = getAssetStatus(asset);
+    const statusClass = { hold:'status-hold', dip1:'status-dip1', dip2:'status-dip2', tp:'status-tp' }[type];
+    const recText = multiplier > 0 ? `${multiplier}× DCA = $${formatNum(active)}` : (type === 'tp' ? 'Zvážit prodej' : 'Standardní DCA');
+
+    return `<div class="dca-item">
+      <div class="dca-item-left">
+        <div class="dca-logo-sm" style="background:${asset.color}20">${asset.logo}</div>
+        <div>
+          <div class="dca-name">${asset.name}</div>
+          <div class="dca-ticker">${asset.ticker}</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="dca-amount">$${formatNum(active)}</div>
+        <div class="dca-amount-label">${recText}</div>
+      </div>
+      <span class="status-badge ${statusClass}" style="white-space:nowrap">${status}</span>
+    </div>`;
+  });
+
+  document.getElementById('baseDcaTotal').textContent = '$' + formatNum(baseTotal);
+  document.getElementById('activeDcaTotal').textContent = '$' + formatNum(activeTotal);
+  document.getElementById('dcaList').innerHTML = items.join('') || '<div class="empty-state"><div class="empty-state-text">Žádná aktiva</div></div>';
+}
+
+function renderExchange() {
+  const sel = document.getElementById('txAsset');
+  if (!sel) return;
+  sel.innerHTML = assets.map(a => `<option value="${a.id}">${a.name} (${a.ticker})</option>`).join('');
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('txDate').value = today;
+
+  renderTransactions();
+}
+
+function renderTransactions() {
+  const el = document.getElementById('transactionList');
+  if (transactions.length === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">📋</div>
+      <div class="empty-state-text">Žádné transakce</div>
+      <div class="empty-state-sub">Přidejte první nákup nebo prodej</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = transactions.slice().reverse().map(tx => {
+    const asset = assets.find(a => a.id === tx.assetId);
+    const total = tx.amount * tx.price;
+    return `<div class="dca-item" style="cursor:default">
+      <div class="dca-item-left">
+        <div class="dca-logo-sm" style="background:${asset ? asset.color+'20' : 'var(--bg-secondary)'}">${asset ? asset.logo : '?'}</div>
+        <div>
+          <div class="dca-name">${asset ? asset.name : tx.assetId}</div>
+          <div class="dca-ticker">${tx.date} · ${tx.note || ''}</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:700;color:${tx.type==='buy'?'var(--green)':'var(--red)'}">${tx.type==='buy'?'+':'-'}${tx.amount} ${asset ? asset.ticker : ''}</div>
+        <div style="font-size:12px;color:var(--text-muted)">@ $${formatPrice(tx.price)} = $${formatNum(total)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderChartTab() {
+  drawPortfolioChart('bigChart', '30d', '0 0 800 300', 300);
+
+  const perf = assets.map(asset => {
+    const { pct } = getAssetStatus(asset);
+    const val = asset.currentPrice * asset.totalUnits;
+    const sign = pct >= 0 ? '+' : '';
+    const color = pct >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<div class="dca-item">
+      <div class="dca-item-left">
+        <div class="dca-logo-sm" style="background:${asset.color}20">${asset.logo}</div>
+        <div>
+          <div class="dca-name">${asset.name}</div>
+          <div class="dca-ticker">ACB: $${formatPrice(asset.avgBuyPrice)}</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:700;color:${color}">${sign}${pct.toFixed(2)}%</div>
+        <div style="font-size:12px;color:var(--text-muted)">Hodnota: $${formatNum(val)}</div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><div class="empty-state-text">Žádná aktiva</div></div>';
+  document.getElementById('assetPerformanceList').innerHTML = perf;
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('nav-' + tab).classList.add('active');
+  currentTab = tab;
+
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'dca') renderDCA();
+  if (tab === 'exchange') renderExchange();
+  if (tab === 'chart') renderChartTab();
+}
+
+// ============================================================
+// TIME RANGE
+// ============================================================
+function setTimeRange(range, btn, target) {
+  const parentBtns = btn.closest('.time-buttons');
+  parentBtns.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (!target || target === 'small') {
+    currentTimeRange = range;
+    drawPortfolioChart('portfolioChart', range, '0 0 600 160', 160);
+  } else {
+    drawPortfolioChart('bigChart', range, '0 0 800 300', 300);
+  }
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+function overlayClick(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+// ============================================================
+// ASSET MENU
+// ============================================================
+function openAssetMenu(e, id) {
+  e.stopPropagation();
+  activeMenuAssetId = id;
+  const asset = assets.find(a => a.id === id);
+  document.getElementById('menuModalTitle').textContent = asset.name + ' — Možnosti';
+  document.getElementById('assetMenuBody').innerHTML = `
+    <button class="dropdown-item" style="width:100%;border-radius:10px;border:none;background:transparent;font-family:inherit;text-align:left;padding:12px 16px;cursor:pointer;color:var(--text-secondary);font-size:14px" onclick="openStrategyEdit('${id}')">
+      📋 Upravit strategii
+    </button>
+    <button class="dropdown-item" style="width:100%;border-radius:10px;border:none;background:transparent;font-family:inherit;text-align:left;padding:12px 16px;cursor:pointer;color:var(--text-secondary);font-size:14px" onclick="openAssetDetail('${id}')">
+      📊 Detail & Historie
+    </button>
+    <button class="dropdown-item" style="width:100%;border-radius:10px;border:none;background:transparent;font-family:inherit;text-align:left;padding:12px 16px;cursor:pointer;color:var(--text-secondary);font-size:14px" onclick="openNotes('${id}')">
+      📝 Poznámky ${asset.notes ? '●' : ''}
+    </button>
+    <div style="height:1px;background:var(--border);margin:6px 0"></div>
+    <button class="dropdown-item danger" style="width:100%;border-radius:10px;border:none;background:transparent;font-family:inherit;text-align:left;padding:12px 16px;cursor:pointer;color:var(--red);font-size:14px" onclick="removeAsset('${id}')">
+      🗑 Odebrat aktivum
+    </button>
+  `;
+  openModal('assetMenuModal');
+}
+
+function handleCardClick(e, id) {
+  // only open detail if not clicking menu
+  if (e.target.closest('.card-menu-btn')) return;
+  openAssetDetail(id);
+}
+
+function openAssetDetail(id) {
+  closeModal('assetMenuModal');
+  const asset = assets.find(a => a.id === id);
+  const { status, type, pct } = getAssetStatus(asset);
+  const val = asset.currentPrice * asset.totalUnits;
+  const gain = val - asset.totalInvested;
+  const gainPct = (gain / asset.totalInvested * 100);
+  const statusClass = { hold:'status-hold', dip1:'status-dip1', dip2:'status-dip2', tp:'status-tp' }[type];
+
+  document.getElementById('detailModalTitle').textContent = asset.name + ' — Detail';
+  document.getElementById('assetDetailBody').innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
+      <div style="width:52px;height:52px;border-radius:14px;background:${asset.color}18;display:flex;align-items:center;justify-content:center;font-size:24px;border:1px solid ${asset.color}25">${asset.logo}</div>
+      <div>
+        <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px">${asset.name}</div>
+        <div style="font-size:13px;color:var(--text-muted)">${asset.ticker} &nbsp;<span class="status-badge ${statusClass}" style="vertical-align:middle"><span class="status-dot"></span>${status}</span></div>
+      </div>
+    </div>
+    <div style="font-size:32px;font-weight:800;letter-spacing:-1px;margin:8px 0">$${formatPrice(asset.currentPrice)} <span style="font-size:14px;color:${asset.change24h>=0?'var(--green)':'var(--red)'};font-weight:600">${asset.change24h>=0?'+':''}${asset.change24h.toFixed(2)}%</span></div>
+
+    <div class="detail-stat-grid">
+      <div class="detail-stat">
+        <div class="detail-stat-label">Celková hodnota</div>
+        <div class="detail-stat-value">$${formatNum(val)}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">Investováno</div>
+        <div class="detail-stat-value">$${formatNum(asset.totalInvested)}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">Zisk / ztráta</div>
+        <div class="detail-stat-value" style="color:${gain>=0?'var(--green)':'var(--red)'}">${gain>=0?'+':''}$${formatNum(Math.abs(gain))} (${gainPct>=0?'+':''}${gainPct.toFixed(1)}%)</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">Od ACB</div>
+        <div class="detail-stat-value" style="color:${pct>=0?'var(--green)':'var(--red)'}">${pct>=0?'+':''}${pct.toFixed(2)}%</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">Prům. nák. cena</div>
+        <div class="detail-stat-value">$${formatPrice(asset.avgBuyPrice)}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">Počet jednotek</div>
+        <div class="detail-stat-value">${asset.totalUnits}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">DIP 1 práh</div>
+        <div class="detail-stat-value" style="color:var(--red)">${asset.dipThresholds[0]}% ($${formatPrice(asset.avgBuyPrice * (1 + asset.dipThresholds[0]/100))})</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">DIP 2 práh</div>
+        <div class="detail-stat-value" style="color:var(--red)">${asset.dipThresholds[1]}% ($${formatPrice(asset.avgBuyPrice * (1 + asset.dipThresholds[1]/100))})</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">Take Profit cíl</div>
+        <div class="detail-stat-value" style="color:var(--yellow)">+${asset.tpTarget}% ($${formatPrice(asset.avgBuyPrice * (1 + asset.tpTarget/100))})</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">DCA základ / měsíc</div>
+        <div class="detail-stat-value">$${formatNum(asset.dcaBase)}</div>
+      </div>
+    </div>
+    ${asset.notes ? `<div style="background:var(--bg-secondary);border-radius:12px;padding:14px;margin-top:4px"><div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Poznámky</div><div style="font-size:13px;color:var(--text-secondary);line-height:1.6">${asset.notes}</div></div>` : ''}
+    <div style="display:flex;gap:10px">
+      <button class="btn-secondary" style="flex:1;justify-content:center" onclick="closeModal('assetDetailModal');openStrategyEdit('${id}')">📋 Upravit</button>
+      <button class="btn-ai" style="flex:1;justify-content:center" onclick="openModal('aiModal')">✦ Poradit</button>
+    </div>
+  `;
+  openModal('assetDetailModal');
+}
+
+function openStrategyEdit(id) {
+  closeModal('assetMenuModal');
+  const asset = assets.find(a => a.id === id);
+  document.getElementById('editAssetBody').innerHTML = `
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Aktuální cena (USD)</label>
+        <input class="form-input" type="number" id="editPrice" value="${asset.currentPrice}" step="any">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prům. nák. cena (USD)</label>
+        <input class="form-input" type="number" id="editAvg" value="${asset.avgBuyPrice}" step="any">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Počet jednotek</label>
+        <input class="form-input" type="number" id="editUnits" value="${asset.totalUnits}" step="any">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Investováno (USD)</label>
+        <input class="form-input" type="number" id="editInvested" value="${asset.totalInvested}" step="any">
+      </div>
+      <div class="form-group">
+        <label class="form-label">DCA základ / měsíc</label>
+        <input class="form-input" type="number" id="editDcaBase" value="${asset.dcaBase}" step="any">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Změna 24h (%)</label>
+        <input class="form-input" type="number" id="editChange" value="${asset.change24h}" step="any">
+      </div>
+      <div class="form-group">
+        <label class="form-label">DIP 1 práh (%)</label>
+        <input class="form-input" type="number" id="editDip1" value="${asset.dipThresholds[0]}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">DIP 2 práh (%)</label>
+        <input class="form-input" type="number" id="editDip2" value="${asset.dipThresholds[1]}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Take Profit cíl (%)</label>
+      <input class="form-input" type="number" id="editTp" value="${asset.tpTarget}">
+    </div>
+    <button class="btn-primary btn-full" onclick="saveStrategyEdit('${id}')">Uložit změny</button>
+  `;
+  openModal('editAssetModal');
+}
+
+function saveStrategyEdit(id) {
+  const asset = assets.find(a => a.id === id);
+  asset.currentPrice = parseFloat(document.getElementById('editPrice').value) || asset.currentPrice;
+  asset.avgBuyPrice = parseFloat(document.getElementById('editAvg').value) || asset.avgBuyPrice;
+  asset.totalUnits = parseFloat(document.getElementById('editUnits').value) || asset.totalUnits;
+  asset.totalInvested = parseFloat(document.getElementById('editInvested').value) || asset.totalInvested;
+  asset.dcaBase = parseFloat(document.getElementById('editDcaBase').value) || asset.dcaBase;
+  asset.change24h = parseFloat(document.getElementById('editChange').value) || asset.change24h;
+  asset.dipThresholds[0] = parseFloat(document.getElementById('editDip1').value) || asset.dipThresholds[0];
+  asset.dipThresholds[1] = parseFloat(document.getElementById('editDip2').value) || asset.dipThresholds[1];
+  asset.tpTarget = parseFloat(document.getElementById('editTp').value) || asset.tpTarget;
+  saveData();
+  closeModal('editAssetModal');
+  renderDashboard();
+  showToast('Strategie uložena', 'success');
+}
+
+function openNotes(id) {
+  closeModal('assetMenuModal');
+  const asset = assets.find(a => a.id === id);
+  document.getElementById('notesBody').innerHTML = `
+    <div class="form-group">
+      <label class="form-label">Poznámky k aktivu ${asset.name}</label>
+      <textarea class="form-input" id="notesText" style="min-height:140px">${asset.notes || ''}</textarea>
+    </div>
+    <button class="btn-primary btn-full" onclick="saveNotes('${id}')">Uložit poznámky</button>
+  `;
+  openModal('notesModal');
+}
+
+function saveNotes(id) {
+  const asset = assets.find(a => a.id === id);
+  asset.notes = document.getElementById('notesText').value;
+  saveData();
+  closeModal('notesModal');
+  renderDashboard();
+  showToast('Poznámky uloženy', 'success');
+}
+
+// ============================================================
+// ADD ASSET
+// ============================================================
+function addAsset() {
+  const name = document.getElementById('newName').value.trim();
+  const ticker = document.getElementById('newTicker').value.trim().toUpperCase();
+  if (!name || !ticker) { showToast('Vyplňte název a ticker', 'error'); return; }
+
+  const id = ticker.toLowerCase().replace(/[^a-z0-9]/g,'') + '_' + Date.now();
+  const asset = {
+    id,
+    name,
+    ticker,
+    logo: document.getElementById('newLogo').value.trim() || ticker[0],
+    color: document.getElementById('newColor').value || '#4d8ef5',
+    currentPrice: parseFloat(document.getElementById('newCurrentPrice').value) || 0,
+    change24h: 0,
+    avgBuyPrice: parseFloat(document.getElementById('newAvgBuyPrice').value) || 0,
+    totalUnits: parseFloat(document.getElementById('newTotalUnits').value) || 0,
+    totalInvested: parseFloat(document.getElementById('newTotalInvested').value) || 0,
+    dcaBase: parseFloat(document.getElementById('newDcaBase').value) || 100,
+    dipThresholds: [
+      parseFloat(document.getElementById('newDip1').value) || -15,
+      parseFloat(document.getElementById('newDip2').value) || -30
+    ],
+    tpTarget: parseFloat(document.getElementById('newTp').value) || 20,
+    notes: document.getElementById('newNotes').value.trim()
+  };
+
+  assets.push(asset);
+  saveData();
+  closeModal('addAssetModal');
+  renderDashboard();
+  showToast(`${name} přidáno do portfolia`, 'success');
+
+  // Clear form
+  ['newName','newTicker','newLogo','newCurrentPrice','newAvgBuyPrice','newTotalUnits','newTotalInvested','newDcaBase','newDip1','newDip2','newTp','newNotes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+// ============================================================
+// REMOVE ASSET
+// ============================================================
+function removeAsset(id) {
+  const asset = assets.find(a => a.id === id);
+  if (!confirm(`Opravdu odebrat ${asset.name}?`)) return;
+  assets = assets.filter(a => a.id !== id);
+  saveData();
+  closeModal('assetMenuModal');
+  renderDashboard();
+  showToast(`${asset.name} odebráno`, 'info');
+}
+
+// ============================================================
+// TRANSACTIONS
+// ============================================================
+function setTxType(type) {
+  txType = type;
+  const buyBtn = document.getElementById('txBuyBtn');
+  const sellBtn = document.getElementById('txSellBtn');
+  if (type === 'buy') {
+    buyBtn.style.background = 'var(--green-dim)';
+    buyBtn.style.color = 'var(--green)';
+    buyBtn.style.border = '1px solid rgba(0,211,149,0.3)';
+    sellBtn.style.background = '';
+    sellBtn.style.color = '';
+    sellBtn.style.border = '';
+  } else {
+    sellBtn.style.background = 'var(--red-dim)';
+    sellBtn.style.color = 'var(--red)';
+    sellBtn.style.border = '1px solid rgba(255,79,110,0.3)';
+    buyBtn.style.background = '';
+    buyBtn.style.color = '';
+    buyBtn.style.border = '';
+  }
+}
+
+function submitTransaction() {
+  const assetId = document.getElementById('txAsset').value;
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const price = parseFloat(document.getElementById('txPrice').value);
+  const date = document.getElementById('txDate').value;
+  if (!assetId || !amount || !price) { showToast('Vyplňte všechna pole', 'error'); return; }
+
+  const tx = { id: Date.now(), assetId, type: txType, amount, price, date, note: document.getElementById('txNote').value };
+  transactions.push(tx);
+
+  // Update asset if buy
+  const asset = assets.find(a => a.id === assetId);
+  if (asset && txType === 'buy') {
+    const totalCost = asset.avgBuyPrice * asset.totalUnits + price * amount;
+    asset.totalUnits += amount;
+    asset.totalInvested += price * amount;
+    asset.avgBuyPrice = asset.totalUnits > 0 ? totalCost / asset.totalUnits : price;
+  } else if (asset && txType === 'sell') {
+    asset.totalUnits = Math.max(0, asset.totalUnits - amount);
+    asset.totalInvested = Math.max(0, asset.totalInvested - price * amount);
+  }
+
+  saveData();
+  renderTransactions();
+  if (currentTab === 'dashboard') renderDashboard();
+  document.getElementById('txAmount').value = '';
+  document.getElementById('txPrice').value = '';
+  document.getElementById('txNote').value = '';
+  document.getElementById('txTotal').textContent = '–';
+  showToast('Transakce přidána', 'success');
+}
+
+function clearTransactions() {
+  if (!confirm('Smazat historii transakcí?')) return;
+  transactions = [];
+  saveData();
+  renderTransactions();
+}
+
+// Update total on input
+document.addEventListener('input', e => {
+  if (e.target.id === 'txAmount' || e.target.id === 'txPrice') {
+    const amt = parseFloat(document.getElementById('txAmount').value) || 0;
+    const prc = parseFloat(document.getElementById('txPrice').value) || 0;
+    document.getElementById('txTotal').textContent = amt && prc ? '$' + formatNum(amt * prc) : '–';
+  }
+});
+
+// ============================================================
+// AI MODAL
+// ============================================================
+function openClaudeAI() {
+  const stats = getPortfolioStats();
+  const assetsStr = assets.map(a => {
+    const { status, pct } = getAssetStatus(a);
+    return `${a.name} (${a.ticker}): cena $${a.currentPrice}, ACB $${a.avgBuyPrice}, ${pct.toFixed(1)}% od ACB, status: ${status}`;
+  }).join('\n');
+  const prompt = encodeURIComponent(`Moje investiční portfolio (KMK tracker):\n\nCelková hodnota: $${formatNum(stats.totalValue)}\nInvestováno: $${formatNum(stats.totalInvested)}\nZisk/ztráta: ${stats.gain>=0?'+':''}$${formatNum(stats.gain)} (${stats.gainPct.toFixed(1)}%)\n\nAktiva:\n${assetsStr}\n\nProsím, zhodnoť mé portfolio a doporuč mi DCA strategii pro příštích 30 dní.`);
+  window.open(`https://claude.ai/new?q=${prompt}`, '_blank');
+  closeModal('aiModal');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function exportData() {
+  const data = { assets, transactions, exportDate: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `kmk-export-${new Date().toISOString().split('T')[0]}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('Data exportována', 'success');
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.assets) { assets = data.assets; }
+        if (data.transactions) { transactions = data.transactions; }
+        saveData();
+        renderDashboard();
+        showToast('Data importována', 'success');
+      } catch { showToast('Chyba při importu souboru', 'error'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function resetAllData() {
+  if (!confirm('Opravdu smazat všechna data? Tato akce je nevratná.')) return;
+  assets = JSON.parse(JSON.stringify(DEFAULT_ASSETS));
+  transactions = [];
+  saveData();
+  renderDashboard();
+  showToast('Data resetována na výchozí hodnoty', 'info');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type = 'info') {
+  const icons = { success: '✓', error: '✕', info: 'ℹ' };
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type]}</span> ${msg}`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(60px)'; toast.style.transition = 'all 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+// ============================================================
+// FORMAT UTILS
+// ============================================================
+function formatNum(n) {
+  if (n === undefined || n === null || isNaN(n)) return '0.00';
+  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function formatPrice(n) {
+  if (!n) return '0.00';
+  if (n >= 1000) return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (n >= 1) return n.toFixed(2);
+  return n.toFixed(4);
+}
+function formatCurrency(n) {
+  if (n >= 1000) return '$' + (n/1000).toFixed(1) + 'k';
+  return '$' + n.toFixed(0);
+}
+
+// ============================================================
+// KEYBOARD SHORTCUTS
+// ============================================================
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => {
+      m.classList.remove('open');
+    });
+    document.body.style.overflow = '';
+  }
+});
+
+// ============================================================
+// INIT
+// ============================================================
+loadData();
+renderDashboard();
+</script>
+</body>
+</html>
